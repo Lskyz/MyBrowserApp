@@ -28,8 +28,9 @@ jobs:
 
       - name: Install XcodeGen 2.32.0 manually
         run: |
-          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.32.0/XcodeGen.pkg -o XcodeGen.pkg
-          sudo installer -pkg XcodeGen.pkg -target /
+          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.32.0/XcodeGen.zip -o XcodeGen.zip
+          unzip XcodeGen.zip -d XcodeGen
+          sudo mv XcodeGen/xcodegen /usr/local/bin/
           xcodegen --version
 
       - name: Generate Xcode project
