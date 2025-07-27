@@ -5,14 +5,14 @@ on:
       - main
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-14  # macos-13 -> macos-14로 변경
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: List directory contents
         run: ls -la MyBrowserApp
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: brew install xcodegen  # 최신 버전 설치
       - name: Generate Xcode Project
         run: xcodegen generate --spec project.yml
       - name: Install CocoaPods
