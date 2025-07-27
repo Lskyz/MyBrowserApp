@@ -17,16 +17,30 @@ jobs:
         run: |
           if [ -d "MyBrowserApp/MyBrowserApp" ]; then
             mv MyBrowserApp/* ./
+            mv MyBrowserApp/.* ./
             rm -rf MyBrowserApp
           fi
+          ls -la
+          pwd
 
       - name: Show working directory structure
         run: ls -R
 
+      - name: Clean Derived Data
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
       - name: Select Xcode version 15.4
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
 
+      - name: Cache XcodeGen
+        id: cache-xcodegen
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/xcodegen
+          key: ${{ runner.os }}-xcodegen-2.32.0
+
       - name: Install XcodeGen 2.32.0 manually
+        if: steps.cache-xcodegen.outputs.cache-hit != 'true'
         run: |
           curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.32.0/XcodeGen.zip -o XcodeGen.zip
           unzip XcodeGen.zip -d XcodeGen
@@ -38,6 +52,13 @@ jobs:
           xcodegen generate --spec project.yml
           ls -la *.xcodeproj
 
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: ${{ runner.os }}-pods-
+
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods
@@ -46,6 +67,10 @@ jobs:
       - name: List available schemes
         run: xcodebuild -workspace MyBrowserApp.xcworkspace -list
 
+      - name: Check build settings
+        run: |
+          xcodebuild -workspace MyBrowserApp.xcworkspace -scheme MyBrowserApp -configuration Release -showBuildSettings > build_settings.txt
+
       - name: Build archive (no code signing)
         run: |
           xcodebuild clean archive \
@@ -53,6 +78,7 @@ jobs:
             -scheme MyBrowserApp \
             -configuration Release \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
+            -destination generic/platform=iOS \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             -verbose
@@ -71,3 +97,17 @@ jobs:
         with:
           name: unsigned-ipa
           path: build/ipa/*.ipa
+
+      - name: Upload build settings for debugging
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-settings
+          path: build_settings.txt
+
+      - name: Upload xcresult for debugging
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult
+          path: /var/folders/y6/nj790rtn62lfktb1sh__79hc0000gn/T/ResultBundle_*.xcresult
