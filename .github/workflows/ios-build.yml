@@ -29,7 +29,7 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate Xcode project from project.yml
+      - name: Generate Xcode project
         run: |
           xcodegen generate --spec project.yml
           ls -la *.xcodeproj
@@ -58,10 +58,12 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
             -exportOptionsPlist MyBrowserApp/exportOptions.plist \
-            -exportPath $PWD/build/ipa
+            -exportPath $PWD/build/ipa \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-ipa
-          path: build/ipa/MyBrowserApp.ipa
+          path: build/ipa/*.ipa
