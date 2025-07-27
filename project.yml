@@ -3,8 +3,8 @@ options:
   bundleIdPrefix: com.lskyz
   deploymentTarget:
     iOS: "15.0"
-  createIntermediateGroups: true  # 디렉토리 구조 명확화
-  groupSortPosition: top  # 파일 그룹 정렬
+  createIntermediateGroups: true
+  groupSortPosition: top
 
 configs:
   Debug:
@@ -24,6 +24,13 @@ targets:
     resources:
       - path: MyBrowserApp/Assets.xcassets
       - path: MyBrowserApp/LaunchScreen.storyboard
+    info:
+      path: MyBrowserApp/Info.plist
+      properties:
+        CFBundleIdentifier: com.lskyz.MyBrowserApp
+        CFBundleName: MyBrowserApp
+        CFBundleVersion: "1.0"
+        CFBundleShortVersionString: "1.0"
     settings:
       base:
         SWIFT_VERSION: "5.0"
