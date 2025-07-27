@@ -1,5 +1,7 @@
 platform :ios, '15.0'
+project 'MyBrowserApp.xcodeproj'  # 프로젝트 경로 명시
 target 'MyBrowserApp' do
   use_frameworks!
-  # 필요한 의존성 추가, 예: pod 'Alamofire', '~> 5.6'
+  # 의존성 추가 (필요 시), 예:
+  # pod 'Alamofire', '~> 5.6'
 end
