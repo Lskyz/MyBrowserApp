@@ -1,24 +1,34 @@
 name: MyBrowserApp
 options:
-  bundleIdPrefix: com.lskyz
+  bundleIdPrefix: com.example
   deploymentTarget:
-    iOS: "15.0"
+    iOS: '15.0'
+configs:
+  Debug:
+    buildSettings:
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+  Release:
+    buildSettings:
+      SWIFT_OPTIMIZATION_LEVEL: "-Owholemodule"
 targets:
   MyBrowserApp:
     type: application
     platform: iOS
+    deploymentTarget: '15.0'
     sources:
-      - path: MyBrowserApp
+      - MyBrowserApp
+    resources:
+      - MyBrowserApp/Assets.xcassets
+      - MyBrowserApp/LaunchScreen.storyboard
+    dependencies:
+      - target: Pods-MyBrowserApp
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.MyBrowserApp
+        INFO_PLIST_FILE: MyBrowserApp/Info.plist
+        SWIFT_VERSION: 5.0
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
-        SWIFT_VERSION: "5.0"              # 추가
-        ALWAYS_SEARCH_USER_PATHS: NO      # 추가
-    scheme:
-      name: MyBrowserApp
-      build:
-        targets:
-          - MyBrowserApp
-      archive:
-        config: Release
+        ENABLE_BITCODE: NO
