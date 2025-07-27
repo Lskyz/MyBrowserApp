@@ -1,0 +1,41 @@
+name: iOS Build (Unsigned)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install CocoaPods
+        run: gem install cocoapods
+        working-directory: .
+
+      - name: Build archive (no signing)
+        run: |
+          xcodebuild clean archive \
+            -workspace MyBrowserApp.xcworkspace \
+            -scheme MyBrowserApp \
+            -configuration Release \
+            -archivePath $PWD/build/MyBrowserApp.xcarchive \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA (unsigned)
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $PWD/build/MyBrowserApp.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $PWD/build/ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-ipa
+          path: build/ipa/MyBrowserApp.ipa
