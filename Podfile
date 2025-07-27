@@ -1,5 +1,5 @@
 platform :ios, '15.0'
-project 'MyBrowserApp.xcodeproj'  # 프로젝트 경로 명시
+project 'MyBrowserApp.xcodeproj'
 target 'MyBrowserApp' do
   use_frameworks!
   # 의존성 추가 (필요 시), 예:
