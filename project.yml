@@ -1,32 +1,37 @@
 name: MyBrowserApp
 options:
-  bundleIdPrefix: com.example
+  bundleIdPrefix: com.lskyz
   deploymentTarget:
-    iOS: '15.0'
+    iOS: "15.0"
+
 configs:
   Debug:
     buildSettings:
-      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+      ALWAYS_SEARCH_USER_PATHS: NO
   Release:
     buildSettings:
-      SWIFT_OPTIMIZATION_LEVEL: "-Owholemodule"
+      ALWAYS_SEARCH_USER_PATHS: NO
+
 targets:
   MyBrowserApp:
     type: application
     platform: iOS
-    deploymentTarget: '15.0'
+    deploymentTarget: "15.0"
     sources:
-      - MyBrowserApp
+      - path: MyBrowserApp   # 중복 포함 없도록 확인
     resources:
-      - MyBrowserApp/Assets.xcassets
-      - MyBrowserApp/LaunchScreen.storyboard
+      - path: MyBrowserApp/Assets.xcassets
+      - path: MyBrowserApp/LaunchScreen.storyboard
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.MyBrowserApp
-        INFO_PLIST_FILE: MyBrowserApp/Info.plist
-        SWIFT_VERSION: 5.0
-        CODE_SIGN_STYLE: Manual
-        CODE_SIGN_IDENTITY: ""
+        SWIFT_VERSION: "5.0"
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
-        ENABLE_BITCODE: NO
+        ALWAYS_SEARCH_USER_PATHS: NO
+    scheme:
+      name: MyBrowserApp
+      build:
+        targets:
+          - MyBrowserApp
+      archive:
+        config: Release
