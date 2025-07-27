@@ -5,31 +5,38 @@ on:
       - main
 jobs:
   build:
-    runs-on: macos-14  # macos-13 -> macos-14로 변경
+    runs-on: macos-14
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: List directory contents
-        run: ls -la MyBrowserApp
-      - name: Install XcodeGen
-        run: brew install xcodegen  # 최신 버전 설치
-      - name: Generate Xcode Project
-        run: xcodegen generate --spec project.yml
+        run: |
+          ls -la
+          ls -la MyBrowserApp
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
       - name: Install CocoaPods
         run: |
           gem install cocoapods
-          pod install || true  # Podfile이 없으면 무시
+          pod install
+      - name: List workspace contents
+        run: ls -la *.xcworkspace || true
+      - name: Install XcodeGen (optional)
+        run: brew install xcodegen || true  # XcodeGen이 필요 없는 경우 무시
+      - name: Generate Xcode Project (optional)
+        run: xcodegen generate --spec project.yml --verbose || true  # 실패해도 진행
       - name: List available schemes
-        run: xcodebuild -project MyBrowserApp.xcodeproj -list || true
+        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list || xcodebuild -project MyBrowserApp.xcodeproj -list || true
       - name: Build archive (no signing)
         run: |
           xcodebuild clean archive \
-            -project MyBrowserApp.xcodeproj \
+            -workspace MyBrowserApp.xcworkspace \
             -scheme MyBrowserApp \
             -configuration Release \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -verbose
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
