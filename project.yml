@@ -31,6 +31,9 @@ targets:
         CFBundleName: MyBrowserApp
         CFBundleVersion: "1.0"
         CFBundleShortVersionString: "1.0"
+        CFBundlePackageType: "APPL"
+        LSRequiresIPhoneOS: true
+        UILaunchStoryboardName: "LaunchScreen"
     settings:
       base:
         SWIFT_VERSION: "5.0"
