@@ -1,35 +1,48 @@
-name: Generate Xcode Project and Build IPA
+name: Build MyBrowserApp IPA
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build:
     runs-on: macos-14
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: List directory contents
+
+      - name: Fix working directory if nested
         run: |
-          ls -la
-          ls -la MyBrowserApp
+          if [ -d "MyBrowserApp/MyBrowserApp" ]; then
+            mv MyBrowserApp/* ./
+            rm -rf MyBrowserApp
+          fi
+
+      - name: Show working directory structure
+        run: ls -R
+
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
       - name: Install XcodeGen
         run: brew install xcodegen
-      - name: Generate Xcode Project
+
+      - name: Generate Xcode project from project.yml
         run: |
-          xcodegen generate --spec project.yml || { echo "XcodeGen failed"; exit 1; }
-          ls -la *.xcodeproj || true  # .xcodeproj 생성 확인
+          xcodegen generate --spec project.yml
+          ls -la *.xcodeproj
+
       - name: Install CocoaPods
         run: |
-          gem install cocoapods
-          pod install --verbose || { echo "pod install failed"; exit 1; }
-      - name: List workspace contents
-        run: ls -la *.xcworkspace || true
+          sudo gem install cocoapods
+          pod install --verbose
+
       - name: List available schemes
-        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list || true
-      - name: Build archive (no signing)
+        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list
+
+      - name: Build archive (no code signing)
         run: |
           xcodebuild clean archive \
             -workspace MyBrowserApp.xcworkspace \
@@ -39,12 +52,14 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             -verbose
-      - name: Export IPA
+
+      - name: Export unsigned IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
-            -exportOptionsPlist MyBrowserApp/ExportOptions.plist \
+            -exportOptionsPlist MyBrowserApp/exportOptions.plist \
             -exportPath $PWD/build/ipa
+
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
