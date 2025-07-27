@@ -25,15 +25,16 @@ targets:
       - path: MyBrowserApp/Assets.xcassets
       - path: MyBrowserApp/LaunchScreen.storyboard
     info:
-      path: MyBrowserApp/Info.plist
       properties:
         CFBundleIdentifier: com.lskyz.MyBrowserApp
         CFBundleName: MyBrowserApp
         CFBundleVersion: "1.0"
         CFBundleShortVersionString: "1.0"
-        CFBundlePackageType: "APPL"
+        CFBundlePackageType: APPL
         LSRequiresIPhoneOS: true
-        UILaunchStoryboardName: "LaunchScreen"
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
     settings:
       base:
         SWIFT_VERSION: "5.0"
@@ -43,6 +44,7 @@ targets:
         INSTALL_PATH: "$(BUILT_PRODUCTS_DIR)/MyBrowserApp.app"
         PRODUCT_BUNDLE_IDENTIFIER: com.lskyz.MyBrowserApp
         PRODUCT_NAME: MyBrowserApp
+        INFOPLIST_FILE: "$(SRCROOT)/MyBrowserApp/Info.plist"
     scheme:
       name: MyBrowserApp
       build:
