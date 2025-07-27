@@ -13,6 +13,8 @@ targets:
       base:
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
+        SWIFT_VERSION: "5.0"              # 추가
+        ALWAYS_SEARCH_USER_PATHS: NO      # 추가
     scheme:
       name: MyBrowserApp
       build:
