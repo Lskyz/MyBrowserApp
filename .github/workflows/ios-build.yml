@@ -19,7 +19,7 @@ jobs:
         run: brew install xcodegen
       - name: Generate Xcode Project
         run: |
-          xcodegen generate --spec project.yml --verbose || { echo "XcodeGen failed"; exit 1; }
+          xcodegen generate --spec project.yml || { echo "XcodeGen failed"; exit 1; }
           ls -la *.xcodeproj || true  # .xcodeproj 생성 확인
       - name: Install CocoaPods
         run: |
