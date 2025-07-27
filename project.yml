@@ -20,8 +20,6 @@ targets:
     resources:
       - MyBrowserApp/Assets.xcassets
       - MyBrowserApp/LaunchScreen.storyboard
-    dependencies:
-      - target: Pods-MyBrowserApp
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.MyBrowserApp
