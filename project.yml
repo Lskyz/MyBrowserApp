@@ -2,7 +2,7 @@ name: MyBrowserApp
 options:
   bundleIdPrefix: com.lskyz
   deploymentTarget:
-    iOS: "15.0"  # SwiftUI 사용을 고려해 iOS 15 이상
+    iOS: "15.0"  # SwiftUI 사용
 targets:
   MyBrowserApp:
     type: application
