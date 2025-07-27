@@ -1,37 +1,41 @@
-name: iOS Build (Unsigned)
-
+name: Generate Xcode Project and Build IPA
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-
+    branches:
+      - main
 jobs:
   build:
     runs-on: macos-13
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      - name: List directory contents
+        run: ls -la MyBrowserApp
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode Project
+        run: xcodegen generate --spec project.yml
       - name: Install CocoaPods
-        run: gem install cocoapods
-
+        run: |
+          gem install cocoapods
+          pod install || true  # Podfile이 없으면 무시
+      - name: List available schemes
+        run: xcodebuild -project MyBrowserApp.xcodeproj -list || true
       - name: Build archive (no signing)
         run: |
           xcodebuild clean archive \
+            -project MyBrowserApp.xcodeproj \
             -scheme MyBrowserApp \
             -configuration Release \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath $PWD/build/MyBrowserApp.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
+            -exportOptionsPlist MyBrowserApp/ExportOptions.plist \
             -exportPath $PWD/build/ipa
-
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
