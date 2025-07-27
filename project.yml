@@ -20,10 +20,10 @@ targets:
     platform: iOS
     deploymentTarget: "15.0"
     sources:
-      - path: MyBrowserApp
+      - path: MyBrowserApp  # 확인: 폴더가 존재해야 함
     resources:
-      - path: MyBrowserApp/Assets.xcassets
-      - path: MyBrowserApp/LaunchScreen.storyboard
+      - path: MyBrowserApp/Assets.xcassets  # 확인: 파일이 존재해야 함
+      - path: MyBrowserApp/LaunchScreen.storyboard  # 확인: 파일이 존재해야 함
     info:
       properties:
         CFBundleIdentifier: com.lskyz.MyBrowserApp
