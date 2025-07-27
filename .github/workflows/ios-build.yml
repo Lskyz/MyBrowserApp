@@ -18,10 +18,8 @@ jobs:
           ls -R
           pwd
 
-      - name: Clean Derived Data and XcodeGen cache
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf ~/.xcodegen/cache
+      - name: Clean Derived Data
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
       - name: Select Xcode version 15.4
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
@@ -31,19 +29,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /usr/local/bin/xcodegen
-          key: ${{ runner.os }}-xcodegen-2.32.0
+          key: ${{ runner.os }}-xcodegen-2.38.0
 
-      - name: Install XcodeGen 2.32.0 manually
+      - name: Install XcodeGen 2.38.0 manually
         if: steps.cache-xcodegen.outputs.cache-hit != 'true'
         run: |
-          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.32.0/XcodeGen.zip -o XcodeGen.zip
+          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.38.0/XcodeGen.zip -o XcodeGen.zip
           unzip XcodeGen.zip -d XcodeGen
           sudo mv XcodeGen/xcodegen/bin/xcodegen /usr/local/bin/
           xcodegen --version
 
       - name: Generate Xcode project
         run: |
-          xcodegen generate --spec project.yml --no-cache
+          xcodegen generate --spec project.yml
           ls -la *.xcodeproj
 
       - name: Cache CocoaPods
