@@ -3,7 +3,8 @@ options:
   bundleIdPrefix: com.lskyz
   deploymentTarget:
     iOS: "15.0"
-  createIntermediateGroups: true  # 디렉토리 구조 명확히 처리
+  createIntermediateGroups: true  # 디렉토리 구조 명확화
+  groupSortPosition: top  # 파일 그룹 정렬
 
 configs:
   Debug:
