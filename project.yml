@@ -18,7 +18,7 @@ targets:
     platform: iOS
     deploymentTarget: "15.0"
     sources:
-      - path: MyBrowserApp   # 중복 포함 없도록 확인
+      - path: MyBrowserApp
     resources:
       - path: MyBrowserApp/Assets.xcassets
       - path: MyBrowserApp/LaunchScreen.storyboard
@@ -28,6 +28,8 @@ targets:
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
         ALWAYS_SEARCH_USER_PATHS: NO
+        INSTALL_PATH: "$(BUILT_PRODUCTS_DIR)/MyBrowserApp.app"
+        PRODUCT_NAME: "MyBrowserApp"
     scheme:
       name: MyBrowserApp
       build:
