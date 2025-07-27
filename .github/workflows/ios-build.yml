@@ -26,11 +26,11 @@ jobs:
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
 
-      - name: Install XcodeGen 2.32.0
+      - name: Install XcodeGen 2.32.0 manually
         run: |
-          brew tap yonaskolb/xcodegen
-          brew install xcodegen@2.32.0
-          brew link --overwrite --force xcodegen@2.32.0
+          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.32.0/XcodeGen.pkg -o XcodeGen.pkg
+          sudo installer -pkg XcodeGen.pkg -target /
+          xcodegen --version
 
       - name: Generate Xcode project
         run: |
