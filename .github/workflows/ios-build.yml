@@ -15,18 +15,20 @@ jobs:
           ls -la MyBrowserApp
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode Project
+        run: |
+          xcodegen generate --spec project.yml --verbose || { echo "XcodeGen failed"; exit 1; }
+          ls -la *.xcodeproj || true  # .xcodeproj 생성 확인
       - name: Install CocoaPods
         run: |
           gem install cocoapods
-          pod install
+          pod install --verbose || { echo "pod install failed"; exit 1; }
       - name: List workspace contents
         run: ls -la *.xcworkspace || true
-      - name: Install XcodeGen (optional)
-        run: brew install xcodegen || true  # XcodeGen이 필요 없는 경우 무시
-      - name: Generate Xcode Project (optional)
-        run: xcodegen generate --spec project.yml --verbose || true  # 실패해도 진행
       - name: List available schemes
-        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list || xcodebuild -project MyBrowserApp.xcodeproj -list || true
+        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list || true
       - name: Build archive (no signing)
         run: |
           xcodebuild clean archive \
