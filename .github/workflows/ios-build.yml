@@ -50,8 +50,8 @@ jobs:
             echo "No scheme found, exiting."
             exit 1
           fi
-          # 실제 스킴 이름으로 대체 (예: "MyBrowserapp" 또는 확인 후 수정)
-          CORRECTED_SCHEME="MyBrowserapp" # 여기를 확인 후 올바른 이름으로 변경
+          # "mybrowesrapp"로 강제 지정 (확인됨)
+          CORRECTED_SCHEME="mybrowesrapp"
           if [ "$SCHEME" != "$CORRECTED_SCHEME" ]; then
             echo "Scheme mismatch, forcing to $CORRECTED_SCHEME"
             SCHEME="$CORRECTED_SCHEME"
@@ -79,7 +79,7 @@ jobs:
             -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.SCHEME }}-ipa
           path: build/${{ env.SCHEME }}/*.ipa
