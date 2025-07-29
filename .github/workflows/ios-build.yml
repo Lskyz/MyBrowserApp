@@ -28,6 +28,12 @@ jobs:
             ls -la;
             exit 1;
           fi
+          # Info.plist 확인
+          if [ ! -f Info.plist ] && [ ! -f MyBrowserApp/mybrowserapp/Info.plist ]; then
+            echo "Info.plist not found in root or MyBrowserApp/mybrowserapp/!";
+            ls -la MyBrowserApp/ 2>/dev/null || echo "MyBrowserApp/ directory not found";
+            exit 1;
+          fi
 
       - name: Check exportOptions.plist
         run: |
@@ -50,8 +56,7 @@ jobs:
             echo "No scheme found, exiting."
             exit 1
           fi
-          # "mybrowesrapp"로 강제 지정 (확인됨)
-          CORRECTED_SCHEME="mybrowesrapp"
+          CORRECTED_SCHEME="mybrowesrapp" # 확인된 스킴 이름
           if [ "$SCHEME" != "$CORRECTED_SCHEME" ]; then
             echo "Scheme mismatch, forcing to $CORRECTED_SCHEME"
             SCHEME="$CORRECTED_SCHEME"
