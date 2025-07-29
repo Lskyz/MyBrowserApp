@@ -17,12 +17,11 @@ jobs:
 
       - name: Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode_15.2.app
-        # iOS 15.0 지원을 위해 Xcode 15.2 사용. 필요 시 버전 조정 가능.
 
       - name: Build unsigned IPA
         run: |
           xcodebuild clean build \
-          -project mybrowserapp.xcodeproj \
+          -workspace mybrowserapp.xcworkspace \
           -scheme MyBrowserApp \
           -sdk iphoneos \
           -configuration Release \
@@ -38,7 +37,7 @@ jobs:
           -allowProvisioningUpdates
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MyBrowserApp-unsigned
           path: build/MyBrowserApp.ipa
