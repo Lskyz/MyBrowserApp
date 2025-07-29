@@ -24,7 +24,7 @@ jobs:
       run: |
         xcodebuild archive \
           -project MyBrowserapp.xcodeproj \
-          -scheme MyBrowserapp \
+          -scheme mybrowesrapp \
           -configuration Release \
           -sdk iphoneos \
           -archivePath $PWD/build/MyBrowserapp.xcarchive \
@@ -34,6 +34,6 @@ jobs:
       run: |
         xcodebuild -exportArchive \
           -archivePath $PWD/build/MyBrowserapp.xcarchive \
-          -exportOptionsPlist ExportOptions.plist \
+          -exportOptionsPlist exportOptions.plist \
           -exportPath $PWD/build/ipa \
           CODE_SIGNING_ALLOWED=NO
