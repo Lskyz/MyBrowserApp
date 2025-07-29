@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj)
+name: iOS Build (No Signing with Xcodeproj - Find Scheme)
 
 on:
   push:
@@ -15,6 +15,10 @@ jobs:
 
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: List Schemes
+        run: |
+          xcodebuild -list -project MyBrowserApp.xcodeproj
 
       - name: Build iOS App (No Signing)
         run: |
