@@ -15,13 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 히스토리 가져와 동기화 문제 최소화
+          fetch-depth: 0
 
       - name: Verify project folder
         run: |
-          ls -la  # 루트 디렉토리 파일 목록 확인
-          if [ ! -d "mybrowserapp.xcodeproj" ]; then echo "mybrowserapp.xcodeproj folder not found"; exit 1; fi
-          if [ ! -f "mybrowserapp.xcodeproj/project.pbxproj" ]; then echo "project.pbxproj not found"; exit 1; fi
+          ls -la
+          if [ ! -d "mybrowesrapp.xcodeproj" ]; then echo "mybrowesrapp.xcodeproj folder not found"; exit 1; fi
+          if [ ! -f "mybrowesrapp.xcodeproj/project.pbxproj" ]; then echo "project.pbxproj not found"; exit 1; fi
 
       - name: Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode_15.2.app
@@ -29,13 +29,13 @@ jobs:
       - name: Build unsigned IPA
         run: |
           xcodebuild clean build \
-          -project mybrowserapp.xcodeproj \
+          -project mybrowesrapp.xcodeproj \
           -scheme MyBrowserApp \
           -sdk iphoneos \
           -configuration Release \
           -archivePath build/MyBrowserApp.xcarchive \
           CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-          -verbose  # 디버깅 로그 추가
+          -verbose
 
       - name: Export unsigned IPA
         run: |
@@ -44,7 +44,7 @@ jobs:
           -exportPath build \
           -exportOptionsPlist exportOptions.plist \
           -allowProvisioningUpdates \
-          -verbose  # 디버깅 로그 추가
+          -verbose
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
