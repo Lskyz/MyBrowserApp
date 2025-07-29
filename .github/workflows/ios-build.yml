@@ -1,55 +1,72 @@
-name: iOS Build (No Signing)
+name: iOS Build (No Signing with Xcodeproj - Auto Match)
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-14
-
+    runs-on: macos-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.3.app
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Archive App (No Signing)
+      - name: Check Project Files
         run: |
-          xcodebuild archive \
-            -workspace MyBrowserapp/MyBrowserapp.xcodeproj/project.xcworkspace \
-            -scheme MyBrowserapp \
-            -destination "generic/platform=iOS" \
-            -archivePath $PWD/build/MyBrowserapp.xcarchive \
-            -sdk iphoneos \
+          echo "Directory contents:"
+          ls -la
+          if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserApp.xcodeproj not found!"; exit 1; fi
+
+      - name: Check exportOptions.plist
+        run: |
+          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found in root!"; exit 1; fi
+          echo "exportOptions.plist location: $(pwd)/exportOptions.plist"
+
+      - name: List Project Details
+        run: |
+          xcodebuild -list -project MyBrowserapp.xcodeproj
+
+      - name: Extract and Set Scheme
+        id: set_scheme
+        run: |
+          PROJECT_NAME=$(basename MyBrowserapp.xcodeproj .xcodeproj)
+          echo "Detected project name: $PROJECT_NAME"
+          SCHEME=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
+          if [ -z "$SCHEME" ]; then
+            echo "No scheme found, exiting."
+            exit 1
+          fi
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+          echo "Using scheme: $SCHEME"
+          TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
+          echo "Detected targets: $TARGETS"
+
+      - name: Build iOS App (No Signing)
+        run: |
+          xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            | tee build.log | xcpretty
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            archive
 
-      - name: Package .ipa (manually without signing)
+      - name: Convert to IPA
         run: |
-          mkdir -p build/MyBrowserapp-export/Payload
-          cp -r build/MyBrowserapp.xcarchive/Products/Applications/mybrowserapp.app build/MyBrowserapp-export/Payload/
-          cd build/MyBrowserapp-export
-          zip -r MyBrowserapp.ipa Payload
+          xcodebuild -exportArchive \
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            -exportPath build/${{ env.SCHEME }} \
+            -exportOptionsPlist exportOptions.plist \
+            -allowProvisioningUpdates
 
-      - name: Upload .ipa
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MyBrowserapp.ipa
-          path: build/MyBrowserapp-export/MyBrowserapp.ipa
-
-      - name: Upload build log (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+          name: ${{ env.SCHEME }}-ipa
+          path: build/${{ env.SCHEME }}/*.ipa
