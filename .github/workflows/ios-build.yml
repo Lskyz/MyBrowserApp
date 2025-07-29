@@ -26,14 +26,10 @@ jobs:
 
       - name: Check exportOptions.plist
         run: |
-          if [ ! -f exportOptions.plist ]; then
-            echo "exportOptions.plist not found!"
-            ls -la
-            exit 1
-          fi
-          echo "exportOptions.plist found at:"
-          pwd
-          ls -la exportOptions.plist
+          if [ ! -f MyBrowserApp/exportOptions.plist ]; then echo "exportOptions.plist not found!"; exit 1; fi
+
+      - name: Copy exportOptions.plist to workspace root
+        run: cp MyBrowserApp/exportOptions.plist .
 
       - name: List Project Details
         run: |
@@ -66,18 +62,13 @@ jobs:
             -archivePath build/${{ env.SCHEME }}.xcarchive \
             archive
 
-      - name: Show build directory contents before export
-        run: |
-          echo "Build directory contents:"
-          ls -la build/
-          ls -la build/${{ env.SCHEME }}.xcarchive
-
       - name: Convert to IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath build/${{ env.SCHEME }}.xcarchive \
             -exportPath build/${{ env.SCHEME }} \
-            -exportOptionsPlist exportOptions.plist
+            -exportOptionsPlist exportOptions.plist \
+            -allowProvisioningUpdates
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
