@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Force File Recognition)
+name: iOS Build (No Signing with Xcodeproj - Corrected Paths)
 
 on:
   push:
@@ -55,14 +55,14 @@ jobs:
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing with Forced File Paths)
+      - name: Build iOS App (No Signing with Corrected Paths)
         run: |
           xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath build/${{ env.SCHEME }}.xcarchive \
-            -include MyBrowserApp/ \
+            SRCROOT=$(pwd)/MyBrowserApp \
             archive
 
       - name: Convert to IPA
@@ -74,7 +74,7 @@ jobs:
             -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.SCHEME }}-ipa
           path: build/${{ env.SCHEME }}/*.ipa
