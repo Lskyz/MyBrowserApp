@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Root Files)
+name: iOS Build (No Signing with Xcodeproj - Updated Structure)
 
 on:
   push:
@@ -28,10 +28,10 @@ jobs:
             ls -la;
             exit 1;
           fi
-          # Info.plist 확인
-          if [ ! -f Info.plist ] && [ ! -f MyBrowserApp/mybrowserapp/Info.plist ]; then
-            echo "Info.plist not found in root or MyBrowserApp/mybrowserapp/!";
-            ls -la MyBrowserApp/ 2>/dev/null || echo "MyBrowserApp/ directory not found";
+          # Info.plist 확인 (mybrowserapp/ 경로로 수정)
+          if [ ! -f mybrowserapp/Info.plist ]; then
+            echo "Info.plist not found in mybrowserapp/!";
+            ls -la mybrowserapp/ 2>/dev/null || echo "mybrowserapp/ directory not found";
             exit 1;
           fi
 
@@ -54,7 +54,7 @@ jobs:
           SCHEME=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
           if [ -z "$SCHEME" ]; then
             echo "No scheme found, exiting."
-            exit 1
+            exit 1;
           fi
           CORRECTED_SCHEME="mybrowesrapp" # 확인된 스킴 이름
           if [ "$SCHEME" != "$CORRECTED_SCHEME" ]; then
