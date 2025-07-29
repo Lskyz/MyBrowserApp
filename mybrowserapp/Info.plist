@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.MyBrowserApp</string>
+	<string>com.MyBrowserapp</string>
 	<key>CFBundleName</key>
 	<string>MyBrowserApp</string>
 	<key>CFBundleVersion</key>
