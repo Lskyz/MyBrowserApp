@@ -1,43 +1,44 @@
-# .github/workflows/build-ios.yml
-name: Build iOS App with .xcodeproj (No Signing)
+name: Build IPA
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: macos-13
 
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      - name: Set Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
 
-      - name: Clean and archive using .xcodeproj (no code signing)
+      - name: Clean and build for device
         run: |
-          xcodebuild clean archive \
-            -project MyBrowserApp/MyBrowserapp.xcodeproj \
+          mkdir -p output
+          xcodebuild \
+            -project MyBrowserapp.xcodeproj \
             -scheme MyBrowserapp \
             -sdk iphoneos \
-            -archivePath MyBrowserApp/build/MyBrowserapp.xcarchive \
             -configuration Release \
+            -archivePath output/MyBrowserapp.xcarchive \
+            archive \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Export IPA (no signing)
+      - name: Export IPA
         run: |
-          mkdir -p MyBrowserApp/build/ipa
           xcodebuild -exportArchive \
-            -archivePath MyBrowserApp/build/MyBrowserapp.xcarchive \
-            -exportPath MyBrowserApp/build/ipa \
-            -exportOptionsPlist MyBrowserApp/exportOptions.plist \
+            -archivePath output/MyBrowserapp.xcarchive \
+            -exportPath output \
+            -exportOptionsPlist exportOptions.plist \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Upload IPA as artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MyBrowserApp-ipa
-          path: MyBrowserApp/build/ipa/*.ipa
+          name: MyBrowserapp.ipa
+          path: output/MyBrowserapp.ipa
