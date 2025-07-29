@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Auto Match)
+name: iOS Build (No Signing with Xcodeproj - Auto Match with Debug)
 
 on:
   push:
@@ -13,24 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 전체 히스토리 가져와 캐시 문제 최소화
+          fetch-depth: 0
 
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-      - name: List files recursively
-        run: find . -name exportOptions.plist
-
-      - name: Copy exportOptions.plist to workspace root
-        run: |
-          if [ -f MyBrowserApp/exportOptions.plist ]; then
-            cp MyBrowserApp/exportOptions.plist .
-          elif [ -f exportOptions.plist ]; then
-            echo "exportOptions.plist already in root."
-          else
-            echo "exportOptions.plist not found in known locations."
-            exit 1
-          fi
 
       - name: Check Project Files
         run: |
@@ -40,11 +26,14 @@ jobs:
 
       - name: Check exportOptions.plist
         run: |
-          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found!"; exit 1; fi
+          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found in root!"; exit 1; fi
+          echo "exportOptions.plist location: $(pwd)/exportOptions.plist"
 
       - name: List Project Details
         run: |
           xcodebuild -list -project MyBrowserApp.xcodeproj
+          echo "Build settings:"
+          xcodebuild -showBuildSettings -project MyBrowserApp.xcodeproj
 
       - name: Extract and Set Scheme
         id: set_scheme
@@ -79,7 +68,7 @@ jobs:
             -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.SCHEME }}-ipa
           path: build/${{ env.SCHEME }}/*.ipa
