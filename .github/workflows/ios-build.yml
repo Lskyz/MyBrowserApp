@@ -23,6 +23,21 @@ jobs:
           if [ ! -d "mybrowesrapp.xcodeproj" ]; then echo "mybrowesrapp.xcodeproj folder not found"; exit 1; fi
           if [ ! -f "mybrowesrapp.xcodeproj/project.pbxproj" ]; then echo "project.pbxproj not found"; exit 1; fi
 
+      - name: Show project directory structure
+        run: |
+          echo "=== Project directory ==="
+          find . -type f
+
+      - name: Show first 50 lines of project.pbxproj
+        run: |
+          echo "=== project.pbxproj snippet ==="
+          head -n 50 mybrowesrapp.xcodeproj/project.pbxproj
+
+      - name: Show Development Asset Paths setting
+        run: |
+          echo "=== DEVELOPMENT_ASSET_PATHS in project.pbxproj ==="
+          grep -A 10 DEVELOPMENT_ASSET_PATHS mybrowesrapp.xcodeproj/project.pbxproj || echo "No DEVELOPMENT_ASSET_PATHS found"
+
       - name: Select Xcode Version
         run: sudo xcode-select -switch /Applications/Xcode_15.2.app
 
