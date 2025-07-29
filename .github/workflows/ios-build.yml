@@ -13,8 +13,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: List schemes for debug
-      run: xcodebuild -project MyBrowserapp.xcodeproj -list
+    - name: Debug - List schemes
+      run: |
+        echo "=== Project directory ==="
+        ls -al
+        echo "=== Schemes in MyBrowserapp.xcodeproj ==="
+        xcodebuild -project MyBrowserapp.xcodeproj -list
 
     - name: Build and archive ipa without signing
       run: |
