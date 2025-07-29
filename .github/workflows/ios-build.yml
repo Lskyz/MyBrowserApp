@@ -1,36 +1,79 @@
-name: Build and Archive MyBrowserapp
+name: iOS Build (No Signing with Xcodeproj - Auto Match with Debug)
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: List schemes for debug
-      run: xcodebuild -project MyBrowserapp.xcodeproj -list
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-    - name: Build and archive ipa without signing
-      run: |
-        cd MyBrowserApp
-        xcodebuild archive \
-          -project ../MyBrowserapp.xcodeproj \
-          -scheme mybrowesrapp \
-          -configuration Release \
-          -sdk iphoneos \
-          -archivePath $PWD/../build/mybrowesrapp.xcarchive \
-          CODE_SIGNING_ALLOWED=NO
+      - name: Check Project Files
+        run: |
+          echo "Directory contents:"
+          ls -la
+          if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserapp.xcodeproj not found!"; exit 1; fi
+          if [ ! -d MyBrowserapp ] || [ ! -f MyBrowserapp/ContentView.swift ] || [ ! -f MyBrowserapp/CustomWebView.swift ] || [ ! -f MyBrowserapp/WebViewStateModel.swift ] || [ ! -f MyBrowserapp/MyBrowserAppApp.swift ]; then
+            echo "Required files or directory not found!";
+            ls -la MyBrowserapp/;
+            exit 1;
+          fi
 
-    - name: Export ipa from archive
-      run: |
-        xcodebuild -exportArchive \
-          -archivePath build/mybrowesrapp.xcarchive \
-          -exportOptionsPlist ../exportOptions.plist \
-          -exportPath build/ipa \
-          CODE_SIGNING_ALLOWED=NO
+      - name: Check exportOptions.plist
+        run: |
+          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found in root!"; exit 1; fi
+          echo "exportOptions.plist location: $(pwd)/exportOptions.plist"
+
+      - name: List Project Details
+        run: |
+          xcodebuild -list -project MyBrowserapp.xcodeproj
+          echo "Build settings:"
+          xcodebuild -showBuildSettings -project MyBrowserapp.xcodeproj
+
+      - name: Extract and Set Scheme
+        id: set_scheme
+        run: |
+          PROJECT_NAME=$(basename MyBrowserapp.xcodeproj .xcodeproj)
+          echo "Detected project name: $PROJECT_NAME"
+          SCHEME=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
+          if [ -z "$SCHEME" ]; then
+            echo "No scheme found, exiting."
+            exit 1
+          fi
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+          echo "Using scheme: $SCHEME"
+          TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
+          echo "Detected targets: $TARGETS"
+
+      - name: Build iOS App (No Signing)
+        run: |
+          xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            archive
+
+      - name: Convert to IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            -exportPath build/${{ env.SCHEME }} \
+            -exportOptionsPlist exportOptions.plist \
+            -allowProvisioningUpdates
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.SCHEME }}-ipa
+          path: build/${{ env.SCHEME }}/*.ipa
