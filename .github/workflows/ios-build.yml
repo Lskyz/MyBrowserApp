@@ -24,7 +24,7 @@ jobs:
       - name: Archive App (No Signing)
         run: |
           xcodebuild archive \
-            -workspace MyBrowserApp/MyBrowserApp.xcodeproj/project.xcworkspace \
+            -workspace MyBrowserapp/MyBrowserapp.xcodeproj/project.xcworkspace \
             -scheme MyBrowserapp \
             -destination "generic/platform=iOS" \
             -archivePath $PWD/build/MyBrowserapp.xcarchive \
