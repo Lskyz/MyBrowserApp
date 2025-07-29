@@ -1,32 +1,54 @@
-name: Build MyBrowserApp
+name: iOS IPA Build (No Signing)
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Select Xcode Version
-      run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+    # 필요시 Xcode 버전 설정
+    - name: Select Xcode version
+      run: sudo xcode-select -s "/Applications/Xcode_15.2.app/Contents/Developer"
 
-    - name: Build .xcodeproj
+    - name: Install dependencies
       run: |
-        xcodebuild -project MyBrowserApp/MyBrowserApp.xcodeproj \
+        if [ -f Podfile ]; then
+          sudo gem install cocoapods
+          pod install
+        fi
+
+    - name: Archive app (no signing)
+      run: |
+        xcodebuild \
+          -project MyBrowserapp.xcodeproj \
           -scheme MyBrowserApp \
           -configuration Release \
-          -sdk iphoneos \
-          -archivePath $PWD/build/MyBrowserApp.xcarchive \
-          archive
+          -destination 'generic/platform=iOS' \
+          -archivePath ${{ github.workspace }}/build/MyBrowserApp.xcarchive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          clean archive
 
     - name: Export IPA
       run: |
+        mkdir -p PayloadExport
         xcodebuild -exportArchive \
-          -archivePath $PWD/build/MyBrowserApp.xcarchive \
-          -exportOptionsPlist MyBrowserApp/ExportOptions.plist \
-          -exportPath $PWD/build/ipa
+          -archivePath ${{ github.workspace }}/build/MyBrowserApp.xcarchive \
+          -exportPath ${{ github.workspace }}/PayloadExport \
+          -exportOptionsPlist ExportOptions.plist || true
+        ls -al PayloadExport
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: MyBrowserApp-IPA
+        path: PayloadExport/*.ipa
