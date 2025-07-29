@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Find Scheme)
+name: iOS Build (No Signing with Xcodeproj - Auto Scheme)
 
 on:
   push:
@@ -16,13 +16,23 @@ jobs:
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: List Schemes
+      - name: List Schemes and Set Scheme
+        id: set_scheme
         run: |
+          # 프로젝트의 스킴 목록 확인
           xcodebuild -list -project MyBrowserApp.xcodeproj
+          # 첫 번째 스킴 이름 추출 (Schemes: 다음 줄)
+          SCHEME=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
+          if [ -z "$SCHEME" ]; then
+            echo "No scheme found, exiting."
+            exit 1
+          fi
+          echo "SCHEME=$SCHEME" >> $GITHUB_ENV
+          echo "Using scheme: $SCHEME"
 
       - name: Build iOS App (No Signing)
         run: |
-          xcodebuild -project MyBrowserApp.xcodeproj -scheme MyBrowserApp -sdk iphonesimulator -configuration Debug \
+          xcodebuild -project MyBrowserApp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
