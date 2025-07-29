@@ -13,27 +13,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Debug - List schemes
-      run: |
-        echo "=== Project root files ==="
-        ls -al
-        echo "=== Schemes in MyBrowserapp.xcodeproj ==="
-        xcodebuild -project MyBrowserapp.xcodeproj -list
+    - name: List schemes for debug
+      run: xcodebuild -project MyBrowserapp.xcodeproj -list
 
     - name: Build and archive ipa without signing
       run: |
+        cd MyBrowserApp
         xcodebuild archive \
-          -project MyBrowserapp.xcodeproj \
+          -project ../MyBrowserapp.xcodeproj \
           -scheme mybrowesrapp \
           -configuration Release \
           -sdk iphoneos \
-          -archivePath $PWD/build/MyBrowserapp.xcarchive \
+          -archivePath $PWD/../build/mybrowesrapp.xcarchive \
           CODE_SIGNING_ALLOWED=NO
 
     - name: Export ipa from archive
       run: |
         xcodebuild -exportArchive \
-          -archivePath $PWD/build/MyBrowserapp.xcarchive \
-          -exportOptionsPlist exportOptions.plist \
-          -exportPath $PWD/build/ipa \
+          -archivePath build/mybrowesrapp.xcarchive \
+          -exportOptionsPlist ../exportOptions.plist \
+          -exportPath build/ipa \
           CODE_SIGNING_ALLOWED=NO
