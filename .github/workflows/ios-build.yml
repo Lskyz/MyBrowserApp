@@ -1,44 +1,32 @@
-name: Build IPA
+name: Build MyBrowserApp
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
 
-      - name: Clean and build for device
-        run: |
-          mkdir -p output
-          xcodebuild \
-            -project MyBrowserapp.xcodeproj \
-            -scheme MyBrowserapp \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath output/MyBrowserapp.xcarchive \
-            archive \
-            CODE_SIGNING_ALLOWED=NO
+    - name: Build .xcodeproj
+      run: |
+        xcodebuild -project MyBrowserApp/MyBrowserApp.xcodeproj \
+          -scheme MyBrowserApp \
+          -configuration Release \
+          -sdk iphoneos \
+          -archivePath $PWD/build/MyBrowserApp.xcarchive \
+          archive
 
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath output/MyBrowserapp.xcarchive \
-            -exportPath output \
-            -exportOptionsPlist exportOptions.plist \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyBrowserapp.ipa
-          path: output/MyBrowserapp.ipa
+    - name: Export IPA
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath $PWD/build/MyBrowserApp.xcarchive \
+          -exportOptionsPlist MyBrowserApp/ExportOptions.plist \
+          -exportPath $PWD/build/ipa
