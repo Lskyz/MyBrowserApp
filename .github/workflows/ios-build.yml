@@ -1,5 +1,4 @@
-
-      name: iOS Build (No Signing with Xcodeproj - Auto Match)
+name: iOS Build (No Signing with Xcodeproj - Auto Match)
 
 on:
   push:
