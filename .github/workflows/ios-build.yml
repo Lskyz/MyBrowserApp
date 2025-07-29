@@ -21,7 +21,7 @@ jobs:
       - name: Build unsigned IPA
         run: |
           xcodebuild clean build \
-          -workspace mybrowserapp.xcworkspace \
+          -project mybrowserapp.xcodeproj \
           -scheme MyBrowserApp \
           -sdk iphoneos \
           -configuration Release \
