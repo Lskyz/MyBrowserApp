@@ -1,108 +1,44 @@
-name: Build MyBrowserApp IPA
+name: iOS Build
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: macos-14
-
+    runs-on: macos-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Show working directory structure
+      - name: Select Xcode Version
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+        # iOS 15.0 지원을 위해 Xcode 15.2 사용. 필요 시 버전 조정 가능.
+
+      - name: Build unsigned IPA
         run: |
-          ls -R
-          pwd
-
-      - name: Clean Derived Data
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData
-
-      - name: Select Xcode version 15.4
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
-      - name: Cache XcodeGen
-        id: cache-xcodegen
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/xcodegen
-          key: ${{ runner.os }}-xcodegen-2.38.0
-
-      - name: Install XcodeGen 2.38.0 manually
-        if: steps.cache-xcodegen.outputs.cache-hit != 'true'
-        run: |
-          curl -L https://github.com/yonaskolb/XcodeGen/releases/download/2.38.0/XcodeGen.zip -o XcodeGen.zip
-          unzip XcodeGen.zip -d XcodeGen
-          sudo mv XcodeGen/xcodegen/bin/xcodegen /usr/local/bin/
-          xcodegen --version
-
-      - name: Generate Xcode project
-        run: |
-          xcodegen generate --spec project.yml
-          ls -la *.xcodeproj
-          ls -la MyBrowserApp/Info.plist || echo "Info.plist not found"
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v4
-        with:
-          path: Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-          restore-keys: ${{ runner.os }}-pods-
-
-      - name: Install CocoaPods
-        run: |
-          sudo gem install cocoapods
-          pod install --verbose
-
-      - name: List available schemes
-        run: xcodebuild -workspace MyBrowserApp.xcworkspace -list
-
-      - name: Check build settings
-        run: |
-          xcodebuild -workspace MyBrowserApp.xcworkspace -scheme MyBrowserApp -configuration Release -showBuildSettings > build_settings.txt
-
-      - name: Build archive (no code signing)
-        run: |
-          xcodebuild clean archive \
-            -workspace MyBrowserApp.xcworkspace \
-            -scheme MyBrowserApp \
-            -configuration Release \
-            -archivePath $PWD/build/MyBrowserApp.xcarchive \
-            -destination generic/platform=iOS \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            PRODUCT_BUNDLE_IDENTIFIER=com.lskyz.MyBrowserApp \
-            INFOPLIST_FILE=$PWD/MyBrowserApp/Info.plist \
-            -verbose
+          xcodebuild clean build \
+          -project mybrowserapp.xcodeproj \
+          -scheme MyBrowserApp \
+          -sdk iphoneos \
+          -configuration Release \
+          -archivePath build/MyBrowserApp.xcarchive \
+          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
       - name: Export unsigned IPA
         run: |
           xcodebuild -exportArchive \
-            -archivePath $PWD/build/MyBrowserApp.xcarchive \
-            -exportOptionsPlist MyBrowserApp/exportOptions.plist \
-            -exportPath $PWD/build/ipa \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+          -archivePath build/MyBrowserApp.xcarchive \
+          -exportPath build \
+          -exportOptionsPlist exportOptions.plist \
+          -allowProvisioningUpdates
 
-      - name: Upload unsigned IPA
-        uses: actions/upload-artifact@v4
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: unsigned-ipa
-          path: build/ipa/*.ipa
-
-      - name: Upload build settings for debugging
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-settings
-          path: build_settings.txt
-
-      - name: Upload xcresult for debugging
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcresult
-          path: /var/folders/y6/nj790rtn62lfktb1sh__79hc0000gn/T/ResultBundle_*.xcresult
+          name: MyBrowserApp-unsigned
+          path: build/MyBrowserApp.ipa
