@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Auto Match with Debug)
+name: iOS Build (No Signing with Xcodeproj - Force File Recognition)
 
 on:
   push:
@@ -23,9 +23,9 @@ jobs:
           echo "Directory contents:"
           ls -la
           if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserapp.xcodeproj not found!"; exit 1; fi
-          if [ ! -d MyBrowserapp ] || [ ! -f MyBrowserapp/ContentView.swift ] || [ ! -f MyBrowserapp/CustomWebView.swift ] || [ ! -f MyBrowserapp/WebViewStateModel.swift ] || [ ! -f MyBrowserapp/MyBrowserAppApp.swift ]; then
+          if [ ! -d MyBrowserApp ] || [ ! -f MyBrowserApp/ContentView.swift ] || [ ! -f MyBrowserApp/CustomWebView.swift ] || [ ! -f MyBrowserApp/WebViewStateModel.swift ] || [ ! -f MyBrowserApp/MyBrowserAppApp.swift ]; then
             echo "Required files or directory not found!";
-            ls -la MyBrowserapp/;
+            ls -la MyBrowserApp/;
             exit 1;
           fi
 
@@ -55,13 +55,14 @@ jobs:
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing)
+      - name: Build iOS App (No Signing with Forced File Paths)
         run: |
           xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath build/${{ env.SCHEME }}.xcarchive \
+            -include MyBrowserApp/ \
             archive
 
       - name: Convert to IPA
