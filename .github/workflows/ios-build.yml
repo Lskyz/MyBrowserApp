@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Corrected Paths)
+name: iOS Build (No Signing with Xcodeproj - Root Files)
 
 on:
   push:
@@ -23,9 +23,9 @@ jobs:
           echo "Directory contents:"
           ls -la
           if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserapp.xcodeproj not found!"; exit 1; fi
-          if [ ! -d MyBrowserApp ] || [ ! -f MyBrowserApp/ContentView.swift ] || [ ! -f MyBrowserApp/CustomWebView.swift ] || [ ! -f MyBrowserApp/WebViewStateModel.swift ] || [ ! -f MyBrowserApp/MyBrowserAppApp.swift ]; then
-            echo "Required files or directory not found!";
-            ls -la MyBrowserApp/;
+          if [ ! -f ContentView.swift ] || [ ! -f CustomWebView.swift ] || [ ! -f WebViewStateModel.swift ] || [ ! -f MyBrowserAppApp.swift ]; then
+            echo "Required files not found!";
+            ls -la;
             exit 1;
           fi
 
@@ -50,19 +50,24 @@ jobs:
             echo "No scheme found, exiting."
             exit 1
           fi
+          # "mybrowserapp"로 강제 지정
+          CORRECTED_SCHEME="mybrowserapp"
+          if [ "$SCHEME" != "$CORRECTED_SCHEME" ]; then
+            echo "Scheme mismatch, forcing to $CORRECTED_SCHEME"
+            SCHEME="$CORRECTED_SCHEME"
+          fi
           echo "SCHEME=$SCHEME" >> $GITHUB_ENV
           echo "Using scheme: $SCHEME"
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing with Corrected Paths)
+      - name: Build iOS App (No Signing)
         run: |
           xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath build/${{ env.SCHEME }}.xcarchive \
-            SRCROOT=$(pwd)/MyBrowserApp \
             archive
 
       - name: Convert to IPA
