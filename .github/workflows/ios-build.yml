@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Auto Scheme)
+name: iOS Build (No Signing with Xcodeproj - Auto Match)
 
 on:
   push:
@@ -12,14 +12,33 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져와 캐시 문제 최소화
 
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: List Schemes and Set Scheme
-        id: set_scheme
+      - name: Check Project Files
+        run: |
+          echo "Directory contents:"
+          ls -la
+          if [ ! -d MyBrowserApp.xcodeproj ]; then echo "MyBrowserApp.xcodeproj not found!"; exit 1; fi
+
+      - name: Check exportOptions.plist
+        run: |
+          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found!"; exit 1; fi
+
+      - name: List Project Details
         run: |
           xcodebuild -list -project MyBrowserApp.xcodeproj
+
+      - name: Extract and Set Scheme
+        id: set_scheme
+        run: |
+          # 프로젝트 이름 확인
+          PROJECT_NAME=$(basename MyBrowserApp.xcodeproj .xcodeproj)
+          echo "Detected project name: $PROJECT_NAME"
+          # 첫 번째 스킴 이름 추출
           SCHEME=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
           if [ -z "$SCHEME" ]; then
             echo "No scheme found, exiting."
@@ -27,29 +46,29 @@ jobs:
           fi
           echo "SCHEME=$SCHEME" >> $GITHUB_ENV
           echo "Using scheme: $SCHEME"
+          # 타겟 이름 확인 (옵션: 로그로 확인 용도)
+          TARGETS=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
+          echo "Detected targets: $TARGETS"
 
       - name: Build iOS App (No Signing)
         run: |
-          xcodebuild archive \
-            -project MyBrowserApp.xcodeproj \
-            -scheme "${{ env.SCHEME }}" \
-            -sdk iphoneos \
-            -configuration Debug \
+          xcodebuild -project MyBrowserApp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath build \
-            -archivePath build/MyBrowserApp.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            archive
 
       - name: Convert to IPA
         run: |
           xcodebuild -exportArchive \
-            -archivePath build/MyBrowserApp.xcarchive \
-            -exportPath build/MyBrowserApp \
-            -exportOptionsPlist ./mybrowserapp/exportOptions.plist
+            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            -exportPath build/${{ env.SCHEME }} \
+            -exportOptionsPlist exportOptions.plist \
+            -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: MyBrowserApp-ipa
-          path: build/MyBrowserApp/*.ipa
+          name: ${{ env.SCHEME }}-ipa
+          path: build/${{ env.SCHEME }}/*.ipa
