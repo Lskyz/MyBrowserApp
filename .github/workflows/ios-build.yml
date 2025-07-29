@@ -30,7 +30,7 @@ jobs:
         run: |
           xcodebuild clean build \
           -project mybrowesrapp.xcodeproj \
-          -scheme MyBrowserApp \
+          -scheme mybrowesrapp \
           -sdk iphoneos \
           -configuration Release \
           -archivePath build/MyBrowserApp.xcarchive \
