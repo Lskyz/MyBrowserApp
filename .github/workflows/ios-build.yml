@@ -1,12 +1,10 @@
-name: iOS Build
+name: iOS Build (No Signing with Xcodeproj)
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,55 +12,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Verify project folder
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Build iOS App (No Signing)
         run: |
-          ls -la
-          if [ ! -d "mybrowesrapp.xcodeproj" ]; then echo "mybrowesrapp.xcodeproj folder not found"; exit 1; fi
-          if [ ! -f "mybrowesrapp.xcodeproj/project.pbxproj" ]; then echo "project.pbxproj not found"; exit 1; fi
+          xcodebuild -project MyBrowserApp.xcodeproj -scheme MyBrowserApp -sdk iphonesimulator -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            -archivePath build/MyBrowserApp.xcarchive \
+            archive
 
-      - name: Show project directory structure
-        run: |
-          echo "=== Project directory ==="
-          find . -type f
-
-      - name: Show first 50 lines of project.pbxproj
-        run: |
-          echo "=== project.pbxproj snippet ==="
-          head -n 50 mybrowesrapp.xcodeproj/project.pbxproj
-
-      - name: Show Development Asset Paths setting
-        run: |
-          echo "=== DEVELOPMENT_ASSET_PATHS in project.pbxproj ==="
-          grep -A 10 DEVELOPMENT_ASSET_PATHS mybrowesrapp.xcodeproj/project.pbxproj || echo "No DEVELOPMENT_ASSET_PATHS found"
-
-      - name: Select Xcode Version
-        run: sudo xcode-select -switch /Applications/Xcode_15.2.app
-
-      - name: Build unsigned IPA
-        run: |
-          xcodebuild clean build \
-          -project mybrowesrapp.xcodeproj \
-          -scheme mybrowesrapp \
-          -sdk iphoneos \
-          -configuration Release \
-          -archivePath build/MyBrowserApp.xcarchive \
-          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-          -verbose
-
-      - name: Export unsigned IPA
+      - name: Convert to IPA
         run: |
           xcodebuild -exportArchive \
-          -archivePath build/MyBrowserApp.xcarchive \
-          -exportPath build \
-          -exportOptionsPlist exportOptions.plist \
-          -allowProvisioningUpdates \
-          -verbose
+            -archivePath build/MyBrowserApp.xcarchive \
+            -exportPath build/MyBrowserApp \
+            -exportOptionsPlist exportOptions.plist \
+            -allowProvisioningUpdates
 
-      - name: Upload IPA artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MyBrowserApp-unsigned
-          path: build/MyBrowserApp.ipa
+          name: MyBrowserApp-ipa
+          path: build/MyBrowserApp/*.ipa
