@@ -15,7 +15,7 @@ jobs:
 
     - name: Debug - List schemes
       run: |
-        echo "=== Project directory ==="
+        echo "=== Project root files ==="
         ls -al
         echo "=== Schemes in MyBrowserapp.xcodeproj ==="
         xcodebuild -project MyBrowserapp.xcodeproj -list
