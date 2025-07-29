@@ -1,4 +1,4 @@
-name: Build and Export IPA
+name: Build and Archive MyBrowserapp
 
 on:
   push:
@@ -8,36 +8,28 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+    - name: List schemes for debug
+      run: xcodebuild -project MyBrowserapp.xcodeproj -list
 
-      - name: List schemes (디버깅용)
-        run: xcodebuild -project MyBrowserapp.xcodeproj -list
+    - name: Build and archive ipa without signing
+      run: |
+        xcodebuild archive \
+          -project MyBrowserapp.xcodeproj \
+          -scheme MyBrowserapp \
+          -configuration Release \
+          -sdk iphoneos \
+          -archivePath $PWD/build/MyBrowserapp.xcarchive \
+          CODE_SIGNING_ALLOWED=NO
 
-      - name: Build archive
-        run: |
-          xcodebuild archive \
-            -project MyBrowserapp.xcodeproj \
-            -scheme MyBrowserapp \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath ${{ github.workspace }}/build/MyBrowserapp.xcarchive \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath ${{ github.workspace }}/build/MyBrowserapp.xcarchive \
-            -exportPath ${{ github.workspace }}/build/ipa \
-            -exportOptionsPlist ./ExportOptions.plist \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyBrowserapp-ipa
-          path: build/ipa/*.ipa
+    - name: Export ipa from archive
+      run: |
+        xcodebuild -exportArchive \
+          -archivePath $PWD/build/MyBrowserapp.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath $PWD/build/ipa \
+          CODE_SIGNING_ALLOWED=NO
