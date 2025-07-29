@@ -18,6 +18,20 @@ jobs:
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
+      - name: List files recursively
+        run: find . -name exportOptions.plist
+
+      - name: Copy exportOptions.plist to workspace root
+        run: |
+          if [ -f MyBrowserApp/exportOptions.plist ]; then
+            cp MyBrowserApp/exportOptions.plist .
+          elif [ -f exportOptions.plist ]; then
+            echo "exportOptions.plist already in root."
+          else
+            echo "exportOptions.plist not found in known locations."
+            exit 1
+          fi
+
       - name: Check Project Files
         run: |
           echo "Directory contents:"
@@ -26,10 +40,7 @@ jobs:
 
       - name: Check exportOptions.plist
         run: |
-          if [ ! -f MyBrowserApp/exportOptions.plist ]; then echo "exportOptions.plist not found!"; exit 1; fi
-
-      - name: Copy exportOptions.plist to workspace root
-        run: cp MyBrowserApp/exportOptions.plist .
+          if [ ! -f exportOptions.plist ]; then echo "exportOptions.plist not found!"; exit 1; fi
 
       - name: List Project Details
         run: |
@@ -38,10 +49,8 @@ jobs:
       - name: Extract and Set Scheme
         id: set_scheme
         run: |
-          # 프로젝트 이름 확인
           PROJECT_NAME=$(basename MyBrowserApp.xcodeproj .xcodeproj)
           echo "Detected project name: $PROJECT_NAME"
-          # 첫 번째 스킴 이름 추출
           SCHEME=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Schemes:' -A 1 | tail -n 1 | xargs)
           if [ -z "$SCHEME" ]; then
             echo "No scheme found, exiting."
@@ -49,7 +58,6 @@ jobs:
           fi
           echo "SCHEME=$SCHEME" >> $GITHUB_ENV
           echo "Using scheme: $SCHEME"
-          # 타겟 이름 확인 (옵션: 로그로 확인 용도)
           TARGETS=$(xcodebuild -list -project MyBrowserApp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
