@@ -1,5 +1,4 @@
-
-      name: iOS Build (No Signing with Xcodeproj - Corrected Structure)
+name: iOS Build (No Signing with Xcodeproj - Corrected Structure)
 
 on:
   push:
