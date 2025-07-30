@@ -1,4 +1,5 @@
-name: iOS Build (No Signing with Xcodeproj - Corrected Structure)
+
+    name: iOS Build (No Signing with Xcodeproj - Path Override)
 
 on:
   push:
@@ -57,7 +58,7 @@ jobs:
             echo "No scheme found, exiting."
             exit 1;
           fi
-          CORRECTED_SCHEME="mybrowesrapp" # 확인된 스킴 이름
+          CORRECTED_SCHEME="mybrowesrapp"
           if [ "$SCHEME" != "$CORRECTED_SCHEME" ]; then
             echo "Scheme mismatch, forcing to $CORRECTED_SCHEME"
             SCHEME="$CORRECTED_SCHEME"
@@ -67,25 +68,28 @@ jobs:
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing)
+      - name: Build iOS App (No Signing with Path Override)
         run: |
-          xcodebuild -project MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
-            -derivedDataPath build \
+          cd MyBrowserApp/MyBrowserApp || exit 1
+          xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
+            -derivedDataPath ../build \
+            INFOPLIST_FILE=../../mybrowserapp/info.plist \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            -archivePath build/${{ env.SCHEME }}.xcarchive \
+            -archivePath ../build/${{ env.SCHEME }}.xcarchive \
             archive
 
       - name: Convert to IPA
         run: |
+          cd MyBrowserApp/MyBrowserApp || exit 1
           xcodebuild -exportArchive \
-            -archivePath build/${{ env.SCHEME }}.xcarchive \
-            -exportPath build/${{ env.SCHEME }} \
-            -exportOptionsPlist exportOptions.plist \
+            -archivePath ../build/${{ env.SCHEME }}.xcarchive \
+            -exportPath ../build/${{ env.SCHEME }} \
+            -exportOptionsPlist ../../exportOptions.plist \
             -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.SCHEME }}-ipa
-          path: build/${{ env.SCHEME }}/*.ipa
+          path: MyBrowserApp/build/${{ env.SCHEME }}/*.ipa
