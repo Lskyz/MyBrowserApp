@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Force Filelist)
+name: iOS Build (No Signing with Xcodeproj - Force Full Path Override)
 
 on:
   push:
@@ -72,18 +72,17 @@ jobs:
           rm -rf build
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
 
-      - name: Build iOS App (No Signing with Forced Filelist)
+      - name: Build iOS App (No Signing with Full Path Override)
         run: |
           cd MyBrowserApp || exit 1
-          echo "ContentView.swift" > filelist.txt
-          echo "CustomWebView.swift" >> filelist.txt
-          echo "WebViewStateModel.swift" >> filelist.txt
-          echo "MyBrowserAppApp.swift" >> filelist.txt
+          echo "/Users/runner/work/MyBrowserApp/MyBrowserApp/ContentView.swift" > filelist.txt
+          echo "/Users/runner/work/MyBrowserApp/MyBrowserApp/CustomWebView.swift" >> filelist.txt
+          echo "/Users/runner/work/MyBrowserApp/MyBrowserApp/WebViewStateModel.swift" >> filelist.txt
+          echo "/Users/runner/work/MyBrowserApp/MyBrowserApp/MyBrowserAppApp.swift" >> filelist.txt
           xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath ../build \
             INFOPLIST_FILE=../mybrowserapp/info.plist \
-            SRCROOT=$(pwd) \
-            SWIFT_SRC_DIRS=$(pwd) \
+            SRCROOT=/Users/runner/work/MyBrowserApp/MyBrowserApp \
             SWIFT_FILELIST=$(pwd)/filelist.txt \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
