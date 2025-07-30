@@ -1,4 +1,5 @@
-name: iOS Build (No Signing with Xcodeproj - Path Override)
+
+      name: iOS Build (No Signing with Xcodeproj - Verify Subfolder)
 
 on:
   push:
@@ -67,12 +68,14 @@ jobs:
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing with Path Override)
+      - name: Build iOS App (No Signing with Subfolder)
         run: |
-          cd MyBrowserApp/MyBrowserApp || exit 1
+          if [ ! -d MyBrowserApp ]; then echo "MyBrowserApp directory not found!"; exit 1; fi
+          cd MyBrowserApp || exit 1
           xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath ../build \
-            INFOPLIST_FILE=../../mybrowserapp/info.plist \
+            INFOPLIST_FILE=../mybrowserapp/info.plist \
+            SRCROOT=$(pwd) \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath ../build/${{ env.SCHEME }}.xcarchive \
@@ -80,15 +83,15 @@ jobs:
 
       - name: Convert to IPA
         run: |
-          cd MyBrowserApp/MyBrowserApp || exit 1
+          cd MyBrowserApp || exit 1
           xcodebuild -exportArchive \
             -archivePath ../build/${{ env.SCHEME }}.xcarchive \
             -exportPath ../build/${{ env.SCHEME }} \
-            -exportOptionsPlist ../../exportOptions.plist \
+            -exportOptionsPlist ../exportOptions.plist \
             -allowProvisioningUpdates
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.SCHEME }}-ipa
-          path: MyBrowserApp/build/${{ env.SCHEME }}/*.ipa
+          path: ../build/${{ env.SCHEME }}/*.ipa
