@@ -1,4 +1,17 @@
-- name: 디렉토리 구조 확인
-  run: |
-    echo "PWD: $(pwd)"
-    find . -type d
+name: 디렉토리 구조 확인
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-folders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: 디렉토리 구조 확인
+        run: |
+          echo "PWD: $(pwd)"
+          find . -type d
