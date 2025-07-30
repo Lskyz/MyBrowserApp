@@ -1,5 +1,4 @@
-
-      name: iOS Build (No Signing with Xcodeproj - Verify Subfolder)
+name: iOS Build (No Signing with Xcodeproj - Verify Subfolder)
 
 on:
   push:
