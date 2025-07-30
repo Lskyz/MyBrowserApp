@@ -1,17 +1,27 @@
-name: 디렉토리 구조 확인
+name: macOS 경로 구조 확인
 
 on:
   workflow_dispatch:
 
 jobs:
-  check-folders:
-    runs-on: ubuntu-latest
+  check-path:
+    runs-on: macos-latest
 
     steps:
-      - name: Checkout 코드
+      - name: 저장소 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: 디렉토리 구조 확인
+      - name: 현재 경로 출력
         run: |
-          echo "PWD: $(pwd)"
+          echo "📁 현재 디렉토리:"
+          pwd
+
+      - name: 최상위 폴더 나열
+        run: |
+          echo "📂 루트 폴더 목록:"
+          ls -la
+
+      - name: 전체 디렉토리 구조 출력
+        run: |
+          echo "📂 전체 디렉토리 구조:"
           find . -type d
