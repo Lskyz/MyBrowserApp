@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Refined Parsing)
+name: iOS Build (No Signing with Xcodeproj - Path Confirmed)
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
           echo "Debug: Extracting paths from project.pbxproj"
           # PBXFileReference에서 path 추출, 더 엄격한 패턴
           grep -A 10 "PBXFileReference" ../MyBrowserapp.xcodeproj/project.pbxproj | \
-          grep -E "path = [^;]+[.]swift" | \
+          grep -E "path = [^;]+[.]swift[^;]*;" | \
           awk -F' = ' '{print $2}' | \
           sed 's/[;" ]//g' | \
           while read -r path; do
@@ -43,15 +43,15 @@ jobs:
               echo "Found: $full_path" >> filelist.txt
             else
               echo "Warning: $full_path not found, searching..."
-              find "$BASE_DIR" -name "$(basename "$path")" -exec echo {} >> filelist.txt \;
+              find "$BASE_DIR" -name "$(basename "$path")" -maxdepth 1 -exec echo {} >> filelist.txt \;
             fi
           done
-          # 중복 제거 및 빈 줄 제거
+          # 중복 제거 및 최상위 경로만 유지
           sort -u filelist.txt -o filelist.txt
           sed -i '' '/^$/d' filelist.txt
           if [ ! -s filelist.txt ]; then
             echo "Fallback: Searching all .swift files"
-            find "$BASE_DIR" -name "*.swift" >> filelist.txt
+            find "$BASE_DIR" -name "*.swift" -maxdepth 1 >> filelist.txt
             if [ ! -s filelist.txt ]; then
               echo "Error: No .swift files found!"
               exit 1
