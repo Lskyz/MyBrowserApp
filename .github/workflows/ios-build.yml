@@ -1,5 +1,4 @@
-
-    name: iOS Build (No Signing with Xcodeproj - Path Override)
+name: iOS Build (No Signing with Xcodeproj - Path Override)
 
 on:
   push:
