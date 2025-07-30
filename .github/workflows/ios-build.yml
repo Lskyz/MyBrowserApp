@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Path Confirmed)
+name: iOS Build (No Signing with Fixed Paths)
 
 on:
   push:
@@ -18,48 +18,30 @@ jobs:
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Check Project Files
+      - name: Check Project and Source Files
         run: |
           echo "Directory contents:"
           ls -la
           if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserapp.xcodeproj not found!"; exit 1; fi
-          if [ ! -f MyBrowserapp.xcodeproj/project.pbxproj ]; then echo "project.pbxproj not found!"; exit 1; fi
+          if [ ! -d MyBrowserApp/MyBrowserApp ]; then echo "MyBrowserApp/MyBrowserApp directory not found!"; exit 1; fi
+          if [ ! -f MyBrowserApp/MyBrowserApp/ContentView.swift ] || [ ! -f MyBrowserApp/MyBrowserApp/CustomWebView.swift ] || [ ! -f MyBrowserApp/MyBrowserApp/WebViewStateModel.swift ] || [ ! -f MyBrowserApp/MyBrowserApp/MyBrowserAppApp.swift ]; then
+            echo "Required source files not found in MyBrowserApp/MyBrowserApp/!";
+            ls -la MyBrowserApp/MyBrowserApp/;
+            exit 1;
+          fi
 
-      - name: Parse project.pbxproj for File Paths
+      - name: Generate Filelist
         run: |
           cd MyBrowserApp || exit 1
           BASE_DIR=/Users/runner/work/MyBrowserApp
           > filelist.txt
-          echo "Debug: Extracting paths from project.pbxproj"
-          # PBXFileReference에서 path 추출, 더 엄격한 패턴
-          grep -A 10 "PBXFileReference" ../MyBrowserapp.xcodeproj/project.pbxproj | \
-          grep -E "path = [^;]+[.]swift[^;]*;" | \
-          awk -F' = ' '{print $2}' | \
-          sed 's/[;" ]//g' | \
-          while read -r path; do
-            echo "Debug: Parsed path: $path"
-            full_path="${BASE_DIR}/${path}"
-            if [ -f "$full_path" ]; then
-              echo "Found: $full_path" >> filelist.txt
-            else
-              echo "Warning: $full_path not found, searching..."
-              find "$BASE_DIR" -name "$(basename "$path")" -maxdepth 1 -exec echo {} >> filelist.txt \;
-            fi
-          done
-          # 중복 제거 및 최상위 경로만 유지
-          sort -u filelist.txt -o filelist.txt
-          sed -i '' '/^$/d' filelist.txt
-          if [ ! -s filelist.txt ]; then
-            echo "Fallback: Searching all .swift files"
-            find "$BASE_DIR" -name "*.swift" -maxdepth 1 >> filelist.txt
-            if [ ! -s filelist.txt ]; then
-              echo "Error: No .swift files found!"
-              exit 1
-            fi
-          fi
+          echo "${BASE_DIR}/MyBrowserApp/ContentView.swift" >> filelist.txt
+          echo "${BASE_DIR}/MyBrowserApp/CustomWebView.swift" >> filelist.txt
+          echo "${BASE_DIR}/MyBrowserApp/WebViewStateModel.swift" >> filelist.txt
+          echo "${BASE_DIR}/MyBrowserApp/MyBrowserAppApp.swift" >> filelist.txt
           cat filelist.txt
 
-      - name: Build iOS App (No Signing with Parsed Filelist)
+      - name: Build iOS App (No Signing with Fixed Filelist)
         run: |
           cd MyBrowserApp || exit 1
           xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "mybrowesrapp" -sdk iphonesimulator -configuration Debug \
