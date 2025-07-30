@@ -1,4 +1,5 @@
-name: iOS Build (No Signing with Xcodeproj - Updated Structure)
+
+      name: iOS Build (No Signing with Xcodeproj - Corrected Structure)
 
 on:
   push:
@@ -23,15 +24,16 @@ jobs:
           echo "Directory contents:"
           ls -la
           if [ ! -d MyBrowserapp.xcodeproj ]; then echo "MyBrowserapp.xcodeproj not found!"; exit 1; fi
-          if [ ! -f ContentView.swift ] || [ ! -f CustomWebView.swift ] || [ ! -f WebViewStateModel.swift ] || [ ! -f MyBrowserAppApp.swift ]; then
-            echo "Required files not found!";
-            ls -la;
+          if [ ! -d MyBrowserApp ]; then echo "MyBrowserApp directory not found!"; exit 1; fi
+          if [ ! -f MyBrowserApp/ContentView.swift ] || [ ! -f MyBrowserApp/CustomWebView.swift ] || [ ! -f MyBrowserApp/WebViewStateModel.swift ] || [ ! -f MyBrowserApp/MyBrowserAppApp.swift ]; then
+            echo "Required source files not found in MyBrowserApp/!";
+            ls -la MyBrowserApp/;
             exit 1;
           fi
-          # Info.plist 확인 (mybrowserapp/ 경로로 수정)
-          if [ ! -f mybrowserapp/Info.plist ]; then
-            echo "Info.plist not found in mybrowserapp/!";
-            ls -la mybrowserapp/ 2>/dev/null || echo "mybrowserapp/ directory not found";
+          if [ ! -d mybrowserapp ]; then echo "mybrowserapp directory not found!"; exit 1; fi
+          if [ ! -f mybrowserapp/info.plist ]; then
+            echo "info.plist not found in mybrowserapp/!";
+            ls -la mybrowserapp/;
             exit 1;
           fi
 
