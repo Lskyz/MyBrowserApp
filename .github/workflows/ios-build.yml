@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Verify Subfolder)
+name: iOS Build (No Signing with Xcodeproj - Force Correct Path)
 
 on:
   push:
@@ -67,14 +67,19 @@ jobs:
           TARGETS=$(xcodebuild -list -project MyBrowserapp.xcodeproj | grep 'Targets:' -A 1 | tail -n 1 | xargs)
           echo "Detected targets: $TARGETS"
 
-      - name: Build iOS App (No Signing with Subfolder)
+      - name: Clean Build Directory
         run: |
-          if [ ! -d MyBrowserApp ]; then echo "MyBrowserApp directory not found!"; exit 1; fi
+          rm -rf build
+
+      - name: Build iOS App (No Signing with Forced Path)
+        run: |
           cd MyBrowserApp || exit 1
           xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath ../build \
             INFOPLIST_FILE=../mybrowserapp/info.plist \
             SRCROOT=$(pwd) \
+            SWIFT_SRC_DIRS=$(pwd) \
+            INPUT_FILE_LIST=$(pwd)/{ContentView.swift,CustomWebView.swift,WebViewStateModel.swift,MyBrowserAppApp.swift} \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath ../build/${{ env.SCHEME }}.xcarchive \
@@ -90,7 +95,7 @@ jobs:
             -allowProvisioningUpdates
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.SCHEME }}-ipa
           path: ../build/${{ env.SCHEME }}/*.ipa
