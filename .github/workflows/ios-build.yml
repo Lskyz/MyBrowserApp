@@ -1,4 +1,4 @@
-name: iOS Build (No Signing with Xcodeproj - Force Correct Path)
+name: iOS Build (No Signing with Xcodeproj - Force Filelist)
 
 on:
   push:
@@ -70,16 +70,21 @@ jobs:
       - name: Clean Build Directory
         run: |
           rm -rf build
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
 
-      - name: Build iOS App (No Signing with Forced Path)
+      - name: Build iOS App (No Signing with Forced Filelist)
         run: |
           cd MyBrowserApp || exit 1
+          echo "ContentView.swift" > filelist.txt
+          echo "CustomWebView.swift" >> filelist.txt
+          echo "WebViewStateModel.swift" >> filelist.txt
+          echo "MyBrowserAppApp.swift" >> filelist.txt
           xcodebuild -project ../MyBrowserapp.xcodeproj -scheme "${{ env.SCHEME }}" -sdk iphonesimulator -configuration Debug \
             -derivedDataPath ../build \
             INFOPLIST_FILE=../mybrowserapp/info.plist \
             SRCROOT=$(pwd) \
             SWIFT_SRC_DIRS=$(pwd) \
-            INPUT_FILE_LIST=$(pwd)/{ContentView.swift,CustomWebView.swift,WebViewStateModel.swift,MyBrowserAppApp.swift} \
+            SWIFT_FILELIST=$(pwd)/filelist.txt \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             -archivePath ../build/${{ env.SCHEME }}.xcarchive \
